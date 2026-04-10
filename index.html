@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clefairy's Inventory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caprasimo&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Caprasimo', cursive;
+      background: #fff9f5;
+      padding: 24px 16px 48px;
+    }
+
+    /* ── header ── */
+    .ttl {
+      font-size: 28px;
+      color: #d4537e;
+      text-align: center;
+      line-height: 1.4;
+      text-shadow: 2px 2px 0 #f5b8d4;
+      margin-bottom: 6px;
+    }
+    .sub {
+      font-size: 15px;
+      color: #9b6b7f;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .dv {
+      height: 4px;
+      background: repeating-linear-gradient(90deg, #f5b8d4 0, #f5b8d4 8px, transparent 8px, transparent 16px);
+      margin-bottom: 24px;
+    }
+
+    /* ── filter buttons ── */
+    .fbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .fb {
+      font-family: 'Caprasimo', cursive;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: 2px solid #d4a0b8;
+      background: #fff9f5;
+      color: #9b6b7f;
+      cursor: pointer;
+    }
+    .fb:hover, .fb.on {
+      background: #fde8f0;
+      border-color: #d4537e;
+      color: #d4537e;
+    }
+
+    /* ── item count badge ── */
+    .bdg {
+      font-family: 'Caprasimo', cursive;
+      font-size: 13px;
+      color: #9b6b7f;
+      background: #fde8f0;
+      border: 2px solid #f5b8d4;
+      border-radius: 4px;
+      padding: 4px 12px;
+      text-align: center;
+      margin-bottom: 18px;
+      display: block;
+    }
+
+    /* ── item grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── item card ── */
+    .card {
+      position: relative;
+      border: 2px solid #d4a0b8;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      aspect-ratio: 1 / 1.2;
+      background: #fff9f5;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: repeating-linear-gradient(90deg, #f5b8d4 0, #f5b8d4 4px, transparent 4px, transparent 8px);
+      z-index: 2;
+    }
+    .card:hover { transform: translateY(-3px); border-color: #d4537e; }
+    .card:hover .ov { opacity: 1; }
+
+    /* sold card state */
+    .card.sold { border-color: #c0b0b8; cursor: default; }
+    .card.sold::before {
+      background: repeating-linear-gradient(90deg, #c0b0b8 0, #c0b0b8 4px, transparent 4px, transparent 8px);
+    }
+    .card.sold:hover { transform: none; border-color: #c0b0b8; }
+    .card.sold .ia { filter: grayscale(55%) opacity(0.72); }
+    .card.sold:hover .ov { opacity: 0 !important; }
+    .card.sold .nm { color: #a09098; }
+    .card.sold .tg { color: #b8a8b0; }
+
+    /* ── GONE vintage stamp ── */
+    .vstamp {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      z-index: 10;
+      pointer-events: none;
+      width: 82px; height: 82px;
+    }
+    .vstamp svg { width: 100%; height: 100%; }
+
+    /* ── image area ── */
+    .ia {
+      width: 100%;
+      height: 65%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fde8f0;
+      position: relative;
+      overflow: hidden;
+    }
+    .ia img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* quantity badge */
+    .qt {
+      position: absolute;
+      top: 6px; right: 6px;
+      font-family: 'Caprasimo', cursive;
+      font-size: 11px;
+      color: #d4537e;
+      background: #fff9f5;
+      border: 1.5px solid #f5b8d4;
+      border-radius: 4px;
+      padding: 2px 6px;
+      line-height: 1.4;
+      z-index: 3;
+    }
+
+    /* ── info section ── */
+    .inf {
+      padding: 6px 10px 8px;
+      height: 35%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 4px;
+    }
+    .tg {
+      font-family: 'Caprasimo', cursive;
+      font-size: 9px;
+      color: #9b6b7f;
+      line-height: 1.4;
+    }
+    .nm {
+      font-family: 'Caprasimo', cursive;
+      font-size: 11px;
+      color: #5a2d42;
+      line-height: 1.4;
+    }
+
+    /* ── hover overlay ── */
+    .ov {
+      position: absolute;
+      inset: 0;
+      background: rgba(253, 232, 240, 0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      border-radius: 6px;
+    }
+    .on2 {
+      font-family: 'Caprasimo', cursive;
+      font-size: 12px;
+      color: #d4537e;
+      text-align: center;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .od {
+      font-family: 'Caprasimo', cursive;
+      font-size: 11px;
+      color: #5a2d42;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .oa {
+      margin-top: 10px;
+      font-family: 'Caprasimo', cursive;
+      font-size: 9px;
+      color: #9b6b7f;
+      text-align: center;
+    }
+
+    /* ── footer ── */
+    .fdiv {
+      height: 4px;
+      background: repeating-linear-gradient(90deg, #f5b8d4 0, #f5b8d4 8px, transparent 8px, transparent 16px);
+      margin-top: 32px;
+    }
+    .fn {
+      font-family: 'Caprasimo', cursive;
+      font-size: 12px;
+      color: #9b6b7f;
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ttl">✦ Clefairy's Inventory ✦</div>
+  <div class="sub">a curated collection of small treasures</div>
+  <div class="dv"></div>
+
+  <div class="fbar" id="fb">
+    <button class="fb on" data-c="all">All Items</button>
+    <button class="fb" data-c="plushies">Plushies</button>
+    <button class="fb" data-c="single cards">Single Cards</button>
+    <button class="fb" data-c="merch">Merch</button>
+    <button class="fb" data-c="sealed products">Sealed Products</button>
+    <button class="fb" data-c="misc">Misc</button>
+  </div>
+
+  <span class="bdg" id="bdg"></span>
+  <div class="grid" id="gr"></div>
+
+  <div class="fdiv"></div>
+  <div class="fn">hover over items to learn more ✦</div>
+
+  <script>
+    // ============================================================
+    //  YOUR ITEMS — edit this list to add your real collection!
+    //
+    //  Each item has these fields:
+    //    n    → item name (displayed on the card)
+    //    t    → category — must match a filter button:
+    //           "Plushies" / "Single Cards" / "Merch" /
+    //           "Sealed Products" / "Misc"
+    //    q    → quantity (e.g. 1, 2, 3...)
+    //    img  → URL to your photo (paste a direct image link here)
+    //           leave as "" to show a pink placeholder instead
+    //    d    → short description shown on hover
+    //    a    → acquisition note shown on hover (e.g. "Acquired: 2023 · Tokyo")
+    //    sold → true = shows GONE stamp | false = normal card
+    // ============================================================
+    const IT = [
+      {
+        n:    "Clefairy Nendoroid",
+        t:    "Plushies",
+        q:    1,
+        img:  "",                          // ← paste your image URL here
+        d:    "A precious poseable Clefairy figure with swap-out faces.",
+        a:    "Acquired: 2023 · Harajuku, Tokyo",
+        sold: false
+      },
+      {
+        n:    "Jigglypuff Plush",
+        t:    "Plushies",
+        q:    2,
+        img:  "",
+        d:    "Soft vintage plush from the original 1997 line. Still has the original hang tag.",
+        a:    "Acquired: 2022 · eBay find",
+        sold: false
+      },
+      {
+        n:    "Pikachu 1st Edition",
+        t:    "Single Cards",
+        q:    1,
+        img:  "",
+        d:    "Base Set Pikachu in near-mint condition. This one started the whole collection.",
+        a:    "Acquired: 2021 · Card show",
+        sold: true                         // ← set to true to show GONE stamp
+      },
+      {
+        n:    "Eevee Mini Figure",
+        t:    "Misc",
+        q:    3,
+        img:  "",
+        d:    "A tiny gashapon Eevee from Akihabara. Small but mighty.",
+        a:    "Acquired: 2023 · Akihabara",
+        sold: false
+      },
+      {
+        n:    "Snorlax Beanbag",
+        t:    "Plushies",
+        q:    1,
+        img:  "",
+        d:    "Life-size Snorlax beanbag chair. Yes, I sit on it.",
+        a:    "Acquired: 2024 · Pokemon Center",
+        sold: true
+      },
+      {
+        n:    "Mewtwo Holographic",
+        t:    "Single Cards",
+        q:    1,
+        img:  "",
+        d:    "1st Edition Base Set Mewtwo. The crown jewel of the card binder.",
+        a:    "Acquired: 2022 · Collector trade",
+        sold: false
+      },
+      {
+        n:    "Bulbasaur Planter",
+        t:    "Merch",
+        q:    1,
+        img:  "",
+        d:    "A ceramic Bulbasaur planter with a real succulent growing out of the bulb.",
+        a:    "Acquired: 2023 · Etsy",
+        sold: false
+      },
+      {
+        n:    "Chansey Charm Set",
+        t:    "Merch",
+        q:    2,
+        img:  "",
+        d:    "Limited Chansey charm set. Came in a tiny egg box.",
+        a:    "Acquired: 2024 · Pokemon Center",
+        sold: true
+      },
+      {
+        n:    "Scarlet & Violet Box",
+        t:    "Sealed Products",
+        q:    4,
+        img:  "",
+        d:    "Sealed Scarlet & Violet booster boxes. Holding onto these for now.",
+        a:    "Acquired: 2023 · Local card shop",
+        sold: false
+      },
+      {
+        n:    "Togekiss Figure",
+        t:    "Misc",
+        q:    1,
+        img:  "",
+        d:    "Large Togekiss statue from the Pokemon Art Series.",
+        a:    "Acquired: 2024 · Japan import",
+        sold: false
+      },
+      {
+        n:    "Sylveon Kimono Plush",
+        t:    "Plushies",
+        q:    1,
+        img:  "",
+        d:    "Rare Sylveon in a pastel kimono. A limited Kyoto collab piece.",
+        a:    "Acquired: 2023 · Kyoto, Japan",
+        sold: false
+      },
+      {
+        n:    "151 Booster Bundle",
+        t:    "Sealed Products",
+        q:    2,
+        img:  "",
+        d:    "Pokemon 151 ETB still sealed. One of the most beloved modern sets.",
+        a:    "Acquired: 2023 · Pokemon Center",
+        sold: false
+      },
+      // ── ADD MORE ITEMS BELOW THIS LINE ──
+      // Copy and paste one of the blocks above, then fill in your details.
+      // Make sure to put a comma after the } of the item above!
+    ];
+    // ============================================================
+
+    const GONE_SVG = `
+      <div class="vstamp">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#c0392b" stroke-width="3"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#c0392b" stroke-width="1" stroke-dasharray="3 4"/>
+          <text x="50" y="57" font-family="Caprasimo,cursive" font-size="22" fill="#c0392b" text-anchor="middle" font-weight="bold">GONE</text>
+        </svg>
+      </div>`;
+
+    function render(cat) {
+      const f = cat === 'all' ? IT : IT.filter(i => i.t.toLowerCase() === cat);
+      document.getElementById('bdg').textContent = f.length + ' item' + (f.length !== 1 ? 's' : '') + ' in collection';
+      document.getElementById('gr').innerHTML = f.map(i => `
+        <div class="card${i.sold ? ' sold' : ''}">
+          ${i.sold ? GONE_SVG : ''}
+          <div class="ia">
+            <div class="qt">x${i.q}</div>
+            ${i.img
+              ? `<img src="${i.img}" alt="${i.n}" />`
+              : ''}
+          </div>
+          <div class="inf">
+            <div class="tg">${i.t}</div>
+            <div class="nm">${i.n}</div>
+          </div>
+          ${!i.sold ? `
+          <div class="ov">
+            <div class="on2">${i.n}</div>
+            <div class="od">${i.d}</div>
+            <div class="oa">${i.a}</div>
+          </div>` : ''}
+        </div>`).join('');
+    }
+
+    document.getElementById('fb').addEventListener('click', e => {
+      const b = e.target.closest('.fb');
+      if (!b) return;
+      document.querySelectorAll('.fb').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      render(b.dataset.c);
+    });
+
+    render('all');
+  </script>
+</body>
+</html>
